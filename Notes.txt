@@ -1,4 +1,0 @@
-Consumer dumps: Kafka/src/main/resources/output
-
-Consumer start: cd Kafka && mvn exec:java -Dexec.mainClass="org.example.Consumer"
-Producer start:	cd Kafka && mvn exec:java -Dexec.mainClass="org.example.Producer"
