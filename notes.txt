@@ -1,0 +1,5 @@
+Producer:  mvn exec:java -Dexec.mainClass="org.example.Producer"
+KafkaStream: mvn exec:java -Dexec.mainClass="org.example.KafkaStream"
+Consumer: mvn exec:java -Dexec.mainClass="org.example.Consumer"   
+
+IO files: /src/main/resources
