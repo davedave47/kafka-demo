@@ -33,4 +33,5 @@
     ```
 
 ## IO Files
-- **Location:** `/src/main/resources/output/output.txt`
+- **Source:** `/src/main/resources/Dataset`
+- **Output** `src/main/resources/output/output.txt`
