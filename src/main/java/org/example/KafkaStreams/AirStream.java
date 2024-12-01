@@ -101,7 +101,7 @@ public class AirStream {
     }
     KafkaProducer<String, Air> createProducer() {
         final Properties airConf = new Properties();
-        airConf.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "192.168.1.222:29095");
+        airConf.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:29095");
         airConf.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         airConf.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, AirSerializer.class.getName());
         return new KafkaProducer<>(airConf);
@@ -110,7 +110,7 @@ public class AirStream {
         System.out.println("Starting Air Stream");
         Properties conf = new Properties () ;
         conf . put ( StreamsConfig . APPLICATION_ID_CONFIG , "air-stream-app");
-        conf . put ( StreamsConfig . BOOTSTRAP_SERVERS_CONFIG , "192.168.1.222:29092");
+        conf . put ( StreamsConfig . BOOTSTRAP_SERVERS_CONFIG , "localhost:29092");
         conf . put ( StreamsConfig . NUM_STREAM_THREADS_CONFIG , 1) ;
         conf . put ( StreamsConfig . DEFAULT_KEY_SERDE_CLASS_CONFIG , Serdes . String () . getClass () . getName () );
         conf . put ( StreamsConfig . DEFAULT_VALUE_SERDE_CLASS_CONFIG , AirSerde. class . getName () ) ;

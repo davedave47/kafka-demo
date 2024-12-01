@@ -27,7 +27,7 @@ public class Producer {
     KafkaProducer<String, Air> createAirProducer() {
         // Producer mandatory config
         final Properties airConf = new Properties();
-        airConf.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "192.168.1.222:29092");
+        airConf.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:29092");
         airConf.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         airConf.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, AirSerializer.class.getName());
         airConf.setProperty(ProducerConfig.PARTITIONER_CLASS_CONFIG, AirPartitioner.class.getName());
@@ -37,7 +37,7 @@ public class Producer {
     KafkaProducer<String, Water> createWaterProducer() {
         // Producer mandatory config
         final Properties waterConf = new Properties();
-        waterConf.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "192.168.1.222:29093");
+        waterConf.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:29093");
         waterConf.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         waterConf.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, WaterSerializer.class.getName());
         return new KafkaProducer<>(waterConf);
@@ -46,7 +46,7 @@ public class Producer {
     KafkaProducer<String, Earth> createEarthProducer() {
         // Producer mandatory config
         final Properties earthConf = new Properties();
-        earthConf.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "192.168.1.222:29094");
+        earthConf.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:29094");
         earthConf.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         earthConf.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, EarthSerializer.class.getName());
         return new KafkaProducer<>(earthConf);
@@ -133,7 +133,7 @@ public class Producer {
                             e.printStackTrace();
                         } else {
                         System.out.println(Arrays.toString(values));
-                          System.out.println("Record sent to " + topic + " partition " + recordMetadata.partition() + " with offset " + recordMetadata.offset());
+                          // System.out.println("Record sent to " + topic + " partition " + recordMetadata.partition() + " with offset " + recordMetadata.offset());
                         }
                     });
                 }

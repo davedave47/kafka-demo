@@ -101,7 +101,7 @@ public class WaterStream {
     }
     KafkaProducer<String, Water> createProducer() {
         final Properties waterConf = new Properties();
-        waterConf.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "192.168.1.222:29095");
+        waterConf.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:29095");
         waterConf.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         waterConf.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, WaterSerializer.class.getName());
         return new KafkaProducer<>(waterConf);
@@ -110,7 +110,7 @@ public class WaterStream {
         System.out.println("Starting Water Stream");
         Properties conf = new Properties () ;
         conf . put ( StreamsConfig . APPLICATION_ID_CONFIG , "water-stream-app");
-        conf . put ( StreamsConfig . BOOTSTRAP_SERVERS_CONFIG , "192.168.1.222:29093");
+        conf . put ( StreamsConfig . BOOTSTRAP_SERVERS_CONFIG , "localhost:29093");
         conf . put ( StreamsConfig . NUM_STREAM_THREADS_CONFIG , 1) ;
         conf . put ( StreamsConfig . DEFAULT_KEY_SERDE_CLASS_CONFIG , Serdes . String () . getClass () . getName () );
         conf . put ( StreamsConfig . DEFAULT_VALUE_SERDE_CLASS_CONFIG , WaterSerde. class . getName () ) ;
