@@ -14,19 +14,19 @@
 
 # Project
 
-## Start Producer
+## Producer
 - **Start Command:**
     ```sh
     mvn exec:java -Dexec.mainClass="org.example.Producer"
     ```
 
-## Start KafkaStream
+## Stream
 - **Start Command:**
     ```sh
     mvn exec:java -Dexec.mainClass="org.example.KafkaStream"
     ```
 
-## Start Consumer
+## Consumer
 - **Start Command:**
     ```sh
     mvn exec:java -Dexec.mainClass="org.example.Consumer"
