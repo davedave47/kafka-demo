@@ -1,7 +1,5 @@
 package org.example;
 
-import org.example.Environment.*;
-
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -13,8 +11,6 @@ import org.apache.kafka.common.serialization.*;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import org.example.Deserializer.*;
 
 public class Consumer {
     KafkaConsumer<String, String> createEnvironmentConsumer() {

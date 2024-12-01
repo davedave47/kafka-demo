@@ -114,10 +114,10 @@ public class Producer {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public <T> void produceRecordsFromCSV(KafkaProducer<String, T> producer, String csvFilePath, String topic) {
         try (BufferedReader br = new BufferedReader(new FileReader(csvFilePath))) {
             String line;
-            int lineCount = 1;
             br.readLine(); // skip header
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");
@@ -137,7 +137,7 @@ public class Producer {
                         }
                     });
                 }
-            System.out.println("Finished reading records for " + csvFilePath);
+            // System.out.println("Finished reading records for " + csvFilePath);
         } catch (IOException e) {
             e.printStackTrace();
         }
