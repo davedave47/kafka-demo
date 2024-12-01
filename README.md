@@ -1,27 +1,44 @@
 # Docker
 
 ## Clean
-- For Linux: `clean.sh`
-- For Windows: `clean.bat`
+- For Linux:
+    ```sh
+    clean.sh
+
+- For Windows:
+    ```sh
+    clean.bat
 
 ## Build
-- For Linux: `build.sh`
-- For Windows: `build.bat`
+- For Linux:
+    ```sh
+    build.sh
+- For Windows:
+    ```sh
+    build.bat
 
 ## Restart
-- For Linux: `restart.sh`
-- For Windows: `restart.bat`
+- For Linux:
+    ```sh
+    restart.sh
+- For Windows:
+    ```sh
+    restart.bat
 
 # Project
 
 ## Start Producer
-- Command: `mvn exec:java -Dexec.mainClass="org.example.Producer"`
+    ```sh
+    mvn exec:java -Dexec.mainClass="org.example.Producer"
+    ```
 
-## Start KafkaStream
-- Command: `mvn exec:java -Dexec.mainClass="org.example.KafkaStream"`
-
+## Start Stream
+    ```sh
+    `mvn exec:java -Dexec.mainClass="org.example.KafkaStream"`
+    ```
 ## Start Consumer
-- Command: `mvn exec:java -Dexec.mainClass="org.example.Consumer"`
-
-## IO Files
+    ```sh
+    `mvn exec:java -Dexec.mainClass="org.example.Consumer"`
+    ```
+## Output
 - Location: `/src/main/resources`
