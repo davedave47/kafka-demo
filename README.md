@@ -33,4 +33,4 @@
     ```
 
 ## IO Files
-- **Location:** `/src/main/resources`
+- **Location:** `/src/main/resources/output/output.txt`
