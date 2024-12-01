@@ -68,7 +68,7 @@ public class AirStream {
                     int currentValue = field.getInt(value);
                     float currentFloatValue = (float) currentValue;
                     if (currentValue == Integer.MIN_VALUE) {
-                        // Impute missing value for int (using average)
+                        // Impute missing value for int (convert the average from int bits to float)
                         float avgValue = Float.intBitsToFloat(field.getInt(avg));
                         float stdValue = Float.intBitsToFloat(field.getInt(std));
                         float imputedValue = avgValue + random.get().nextFloat()*2*stdValue - stdValue;
@@ -83,7 +83,7 @@ public class AirStream {
                         float newStd = (float) Math.sqrt(
                                 ((previousStd * previousStd * (count - 1)) + (currentFloatValue - previousAvg) * (currentFloatValue - newAvg))/count
                         );
-
+                        // Convert the new average and standard deviation back to int bits
                         field.setInt(avg, Float.floatToIntBits(newAvg));
                         field.setInt(std, Float.floatToIntBits(newStd));
                 }
@@ -91,7 +91,6 @@ public class AirStream {
                 e.printStackTrace();
             }
         }
-        // Update thread-local variables
         averageAir.set(avg);
         stdAir.set(std);
 

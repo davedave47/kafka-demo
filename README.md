@@ -1,5 +1,8 @@
 # Docker
 
+## Configuration
+Please replace `<machine-ip>` with your actual machine IP address in the `docker-compose.yml` file
+
 ## Clean
 - For Linux: `clean.sh`
 - For Windows: `clean.bat`

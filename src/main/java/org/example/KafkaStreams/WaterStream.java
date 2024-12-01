@@ -26,18 +26,15 @@ public class WaterStream {
     private Water map(Water value) {
         if (value == null) return null;
 
-        // Increment the record count
         int count = recordCount.get() + 1;
         recordCount.set(count);
 
-        // Retrieve current averages and standard deviations
         Water avg = averageWater.get();
         Water std = stdWater.get();
 
-        // Use reflection to iterate through fields of Water
         Field[] fields = Water.class.getDeclaredFields();
         for (Field field : fields) {
-            field.setAccessible(true); // Allow access to private fields
+            field.setAccessible(true);
 
             try {
                 Class<?> type = field.getType();
@@ -45,14 +42,12 @@ public class WaterStream {
                 if (type == float.class) {
                     float currentValue = field.getFloat(value);
                     if (Float.isNaN(currentValue)) {
-                        // Impute missing value for float
                         float avgValue = field.getFloat(avg);
                         float stdValue = field.getFloat(std);
                         float imputedValue = avgValue + random.get().nextFloat()*2*stdValue - stdValue;
                         field.setFloat(value, imputedValue);
                         currentValue = imputedValue;
                     }
-                    // Update averages and standard deviations incrementally
                     float previousAvg = field.getFloat(avg);
                     float newAvg = previousAvg + (currentValue - previousAvg) / count;
                     float previousStd = field.getFloat(std);
@@ -68,14 +63,12 @@ public class WaterStream {
                     int currentValue = field.getInt(value);
                     float currentFloatValue = (float) currentValue;
                     if (currentValue == Integer.MIN_VALUE) {
-                        // Impute missing value for int (using average)
                         float avgValue = Float.intBitsToFloat(field.getInt(avg));
                         float stdValue = Float.intBitsToFloat(field.getInt(std));
                         float imputedValue = avgValue + random.get().nextFloat()*2*stdValue - stdValue;
                         field.setInt(value, (int) Math.round(imputedValue));
                         currentFloatValue = imputedValue;
                     }
-                    // Update averages for int fields
                     float previousAvg = Float.intBitsToFloat(field.getInt(avg));
                     float newAvg = previousAvg + (currentFloatValue - previousAvg) / count;
 
@@ -92,7 +85,6 @@ public class WaterStream {
             }
         }
 
-        // Update thread-local variables
         averageWater.set(avg);
         stdWater.set(std);
 
