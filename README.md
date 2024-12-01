@@ -34,11 +34,11 @@
 
 ## Start Stream
     ```sh
-    `mvn exec:java -Dexec.mainClass="org.example.KafkaStream"`
+    mvn exec:java -Dexec.mainClass="org.example.KafkaStream"
     ```
 ## Start Consumer
     ```sh
-    `mvn exec:java -Dexec.mainClass="org.example.Consumer"`
+    mvn exec:java -Dexec.mainClass="org.example.Consumer"
     ```
 ## Output
 - Location: `/src/main/resources`
