@@ -15,26 +15,22 @@ import org.example.KafkaStreams.Serde.WaterSerde;
 import org.example.Serializer.WaterSerializer;
 
 public class WaterStream {
-    private final ThreadLocal<Water> averageWater = ThreadLocal.withInitial(() ->
-            new Water(null, null, 0, 0, 0, 0));
-    private final ThreadLocal<Water> stdWater = ThreadLocal.withInitial(() ->
-            new Water(null, null, 0, 0, 0, 0));
-    private final ThreadLocal<Integer> recordCount = ThreadLocal.withInitial(() -> 0);
-    private final ThreadLocal<Random> random = ThreadLocal.withInitial(() -> new Random());
+    private Water averageWater = new Water(null, null, 0, 0, 0, 0);
+    private Water stdWater = new Water(null, null, 0, 0, 0, 0);
+    private int recordCount = 0;
+    private final Random random = new Random();
     private KafkaProducer<String, Water> producer = null;
 
-    private Water map(Water value) {
+    private synchronized Water map(Water value) {
         if (value == null) return null;
 
-        int count = recordCount.get() + 1;
-        recordCount.set(count);
+        // Increment the record recordCount
+        recordCount++;
 
-        Water avg = averageWater.get();
-        Water std = stdWater.get();
-
+        // Use reflection to iterate through fields of Water
         Field[] fields = Water.class.getDeclaredFields();
         for (Field field : fields) {
-            field.setAccessible(true);
+            field.setAccessible(true); // Allow access to private fields
 
             try {
                 Class<?> type = field.getType();
@@ -42,53 +38,52 @@ public class WaterStream {
                 if (type == float.class) {
                     float currentValue = field.getFloat(value);
                     if (Float.isNaN(currentValue)) {
-                        float avgValue = field.getFloat(avg);
-                        float stdValue = field.getFloat(std);
-                        float imputedValue = avgValue + random.get().nextFloat()*2*stdValue - stdValue;
+                        // Impute missing value for float
+                        float avgValue = field.getFloat(averageWater);
+                        float stdValue = field.getFloat(stdWater);
+                        float imputedValue = avgValue + random.nextFloat()*2*stdValue - stdValue;
                         field.setFloat(value, imputedValue);
                         currentValue = imputedValue;
                     }
-                    float previousAvg = field.getFloat(avg);
-                    float newAvg = previousAvg + (currentValue - previousAvg) / count;
-                    float previousStd = field.getFloat(std);
+                    // Update averages and standard deviations incrementally
+                    float previousAvg = field.getFloat(averageWater);
+                    float newAvg = previousAvg + (currentValue - previousAvg) / recordCount;
+                    float previousStd = field.getFloat(stdWater);
                     float newStd = (float) Math.sqrt(
-                            (previousStd * previousStd * (count - 1)
-                                    + (currentValue - previousAvg) * (currentValue - newAvg)) / count
+                            (previousStd * previousStd * (recordCount - 1)
+                                    + (currentValue - previousAvg) * (currentValue - newAvg)) / recordCount
                     );
 
-                    field.setFloat(avg, newAvg);
-                    field.setFloat(std, newStd);
+                    field.setFloat(averageWater, newAvg);
+                    field.setFloat(stdWater, newStd);
 
                 } else if (type == int.class) {
                     int currentValue = field.getInt(value);
                     float currentFloatValue = (float) currentValue;
                     if (currentValue == Integer.MIN_VALUE) {
-                        float avgValue = Float.intBitsToFloat(field.getInt(avg));
-                        float stdValue = Float.intBitsToFloat(field.getInt(std));
-                        float imputedValue = avgValue + random.get().nextFloat()*2*stdValue - stdValue;
+                        // Impute missing value for int (convert the average from int bits to float)
+                        float avgValue = Float.intBitsToFloat(field.getInt(averageWater));
+                        float stdValue = Float.intBitsToFloat(field.getInt(stdWater));
+                        float imputedValue = avgValue + random.nextFloat()*2*stdValue - stdValue;
                         field.setInt(value, (int) Math.round(imputedValue));
                         currentFloatValue = imputedValue;
                     }
-                    float previousAvg = Float.intBitsToFloat(field.getInt(avg));
-                    float newAvg = previousAvg + (currentFloatValue - previousAvg) / count;
+                    // Update averages for int fields
+                    float previousAvg = Float.intBitsToFloat(field.getInt(averageWater));
+                    float newAvg = previousAvg + (currentFloatValue - previousAvg) / recordCount;
+                    float previousStd = Float.intBitsToFloat(field.getInt(stdWater));
 
-                    float previousStd = Float.intBitsToFloat(field.getInt(std));
                     float newStd = (float) Math.sqrt(
-                            ((previousStd * previousStd * (count - 1)) + (currentFloatValue - previousAvg) * (currentFloatValue - newAvg))/count
+                            ((previousStd * previousStd * (recordCount - 1)) + (currentFloatValue - previousAvg) * (currentFloatValue - newAvg))/recordCount
                     );
-
-                    field.setInt(avg, Float.floatToIntBits(newAvg));
-                    field.setInt(std, Float.floatToIntBits(newStd));
+                    // Convert the new average and standard deviation back to int bits
+                    field.setInt(averageWater, Float.floatToIntBits(newAvg));
+                    field.setInt(stdWater, Float.floatToIntBits(newStd));
                 }
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
         }
-
-        averageWater.set(avg);
-        stdWater.set(std);
-
-
         return value;
     }
     KafkaProducer<String, Water> createProducer() {

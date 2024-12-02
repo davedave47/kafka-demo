@@ -1,3 +1,14 @@
+# Make the directories
+
+mkdir -p ./air
+mkdir -p ./water
+mkdir -p ./earth
+mkdir -p ./cloud
+
+# Give permissions
+
+sudo chmod 777 ./air ./water ./earth ./cloud
+
 # Bring up the Docker Compose services in detached mode
 docker compose up -d
 

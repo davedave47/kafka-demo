@@ -25,17 +25,17 @@ Please replace `<machine-ip>` with your actual machine IP address in the `docker
 ## Producer
 - **Start Command:**
     ```sh
-    mvn exec:java -Dexec.mainClass="org.example.Producer"
+    mvn exec:java -D exec.mainClass="org.example.Producer"
 
 ## Stream
 - **Start Command:**
     ```sh
-    mvn exec:java -Dexec.mainClass="org.example.KafkaStream"
+    mvn exec:java -D exec.mainClass="org.example.KafkaStream"
 
 ## Consumer
 - **Start Command:**
     ```sh
-    mvn exec:java -Dexec.mainClass="org.example.Consumer"
+    mvn exec:java -D exec.mainClass="org.example.Consumer"
 
 ## IO Files
 - **Source:** `/src/main/resources/Dataset`
