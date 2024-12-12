@@ -15,8 +15,8 @@ import org.example.KafkaStreams.Serde.WaterSerde;
 import org.example.Serializer.WaterSerializer;
 
 public class WaterStream {
-    private Water averageWater = new Water(null, null, 0, 0, 0, 0);
-    private Water stdWater = new Water(null, null, 0, 0, 0, 0);
+    private Water averageWater = new Water(null, null, Float.NaN, Float.NaN, Float.NaN, Float.NaN);
+    private Water stdWater = new Water(null, null, Float.NaN, Float.NaN, Float.NaN, Float.NaN);
     private int recordCount = 0;
     private final Random random = new Random();
     private KafkaProducer<String, Water> producer = null;
@@ -47,15 +47,23 @@ public class WaterStream {
                     }
                     // Update averages and standard deviations incrementally
                     float previousAvg = field.getFloat(averageWater);
-                    float newAvg = previousAvg + (currentValue - previousAvg) / recordCount;
+                    if (Float.isNaN(previousAvg)) {
+                        field.setFloat(averageWater, currentValue);
+                    } else {
+                        float newAvg = previousAvg + (currentValue - previousAvg) / recordCount;
+                        field.setFloat(averageWater, newAvg);
+                    }
                     float previousStd = field.getFloat(stdWater);
-                    float newStd = (float) Math.sqrt(
-                            (previousStd * previousStd * (recordCount - 1)
-                                    + (currentValue - previousAvg) * (currentValue - newAvg)) / recordCount
-                    );
-
-                    field.setFloat(averageWater, newAvg);
-                    field.setFloat(stdWater, newStd);
+                    if (Float.isNaN(previousStd)) {
+                        field.setFloat(stdWater, 0);
+                    } else {
+                        float newAvg = field.getFloat(averageWater);
+                        float newStd = (float) Math.sqrt(
+                                (previousStd * previousStd * (recordCount - 1)
+                                        + (currentValue - previousAvg) * (currentValue - newAvg)) / recordCount
+                        );
+                        field.setFloat(stdWater, newStd);
+                    }
 
                 } else if (type == int.class) {
                     int currentValue = field.getInt(value);
@@ -65,20 +73,29 @@ public class WaterStream {
                         float avgValue = Float.intBitsToFloat(field.getInt(averageWater));
                         float stdValue = Float.intBitsToFloat(field.getInt(stdWater));
                         float imputedValue = avgValue + random.nextFloat()*2*stdValue - stdValue;
-                        field.setInt(value, (int) Math.round(imputedValue));
+                        field.setInt(value, Math.round(imputedValue));
                         currentFloatValue = imputedValue;
                     }
                     // Update averages for int fields
-                    float previousAvg = Float.intBitsToFloat(field.getInt(averageWater));
-                    float newAvg = previousAvg + (currentFloatValue - previousAvg) / recordCount;
-                    float previousStd = Float.intBitsToFloat(field.getInt(stdWater));
-
-                    float newStd = (float) Math.sqrt(
-                            ((previousStd * previousStd * (recordCount - 1)) + (currentFloatValue - previousAvg) * (currentFloatValue - newAvg))/recordCount
-                    );
-                    // Convert the new average and standard deviation back to int bits
-                    field.setInt(averageWater, Float.floatToIntBits(newAvg));
-                    field.setInt(stdWater, Float.floatToIntBits(newStd));
+                    int previousAvgInt = field.getInt(averageWater);
+                    float previousAvg = Float.intBitsToFloat(previousAvgInt);
+                    if (previousAvgInt == Integer.MIN_VALUE) {
+                        field.setInt(averageWater, Float.floatToIntBits(currentFloatValue));
+                    } else {
+                        float newAvg = previousAvg + (currentFloatValue - previousAvg) / recordCount;
+                        field.setInt(averageWater, Float.floatToIntBits(newAvg));
+                    }
+                    int previousStdInt = field.getInt(stdWater);
+                    float previousStd = Float.intBitsToFloat(previousStdInt);
+                    if (previousStdInt == Integer.MIN_VALUE) {
+                        field.setInt(stdWater, 0);
+                    } else {
+                        float newAvg = Float.intBitsToFloat(field.getInt(averageWater));
+                        float newStd = (float) Math.sqrt(
+                                ((previousStd * previousStd * (recordCount - 1)) + (currentFloatValue - previousAvg) * (currentFloatValue - newAvg)) / recordCount
+                        );
+                        field.setInt(stdWater, Float.floatToIntBits(newStd));
+                    }
                 }
             } catch (IllegalAccessException e) {
                 e.printStackTrace();

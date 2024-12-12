@@ -7,7 +7,8 @@ target/
 .idea/
 *.iws
 *.iml
-*.ipr
+*.
+/container/*
 
 ### Eclipse ###
 .apt_generated

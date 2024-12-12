@@ -15,8 +15,8 @@ import org.example.KafkaStreams.Serde.EarthSerde;
 import org.example.Serializer.EarthSerializer;
 
 public class EarthStream {
-    private Earth averageEarth = new Earth(null, null, 0, 0, 0, 0, 0, 0, 0, 0);
-    private Earth stdEarth = new Earth(null, null, 0, 0, 0, 0, 0, 0, 0, 0);
+    private Earth averageEarth = new Earth(null, null, Float.NaN, Float.NaN, Float.NaN, Float.NaN, Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE, Float.NaN);
+    private Earth stdEarth = new Earth(null, null, Float.NaN, Float.NaN, Float.NaN, Float.NaN, Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE, Float.NaN);
     private int recordCount = 0;
     private final Random random = new Random();
     private KafkaProducer<String, Earth> producer = null;
@@ -47,15 +47,23 @@ public class EarthStream {
                     }
                     // Update averages and standard deviations incrementally
                     float previousAvg = field.getFloat(averageEarth);
-                    float newAvg = previousAvg + (currentValue - previousAvg) / recordCount;
+                    if (Float.isNaN(previousAvg)) {
+                        field.setFloat(averageEarth, currentValue);
+                    } else {
+                        float newAvg = previousAvg + (currentValue - previousAvg) / recordCount;
+                        field.setFloat(averageEarth, newAvg);
+                    }
                     float previousStd = field.getFloat(stdEarth);
-                    float newStd = (float) Math.sqrt(
-                            (previousStd * previousStd * (recordCount - 1)
-                                    + (currentValue - previousAvg) * (currentValue - newAvg)) / recordCount
-                    );
-
-                    field.setFloat(averageEarth, newAvg);
-                    field.setFloat(stdEarth, newStd);
+                    if (Float.isNaN(previousStd)) {
+                        field.setFloat(stdEarth, 0);
+                    } else {
+                        float newAvg = field.getFloat(averageEarth);
+                        float newStd = (float) Math.sqrt(
+                                (previousStd * previousStd * (recordCount - 1)
+                                        + (currentValue - previousAvg) * (currentValue - newAvg)) / recordCount
+                        );
+                        field.setFloat(stdEarth, newStd);
+                    }
 
                 } else if (type == int.class) {
                     int currentValue = field.getInt(value);
@@ -65,20 +73,29 @@ public class EarthStream {
                         float avgValue = Float.intBitsToFloat(field.getInt(averageEarth));
                         float stdValue = Float.intBitsToFloat(field.getInt(stdEarth));
                         float imputedValue = avgValue + random.nextFloat()*2*stdValue - stdValue;
-                        field.setInt(value, (int) Math.round(imputedValue));
+                        field.setInt(value, Math.round(imputedValue));
                         currentFloatValue = imputedValue;
                     }
                     // Update averages for int fields
-                    float previousAvg = Float.intBitsToFloat(field.getInt(averageEarth));
-                    float newAvg = previousAvg + (currentFloatValue - previousAvg) / recordCount;
-                    float previousStd = Float.intBitsToFloat(field.getInt(stdEarth));
-
-                    float newStd = (float) Math.sqrt(
-                            ((previousStd * previousStd * (recordCount - 1)) + (currentFloatValue - previousAvg) * (currentFloatValue - newAvg))/recordCount
-                    );
-                    // Convert the new average and standard deviation back to int bits
-                    field.setInt(averageEarth, Float.floatToIntBits(newAvg));
-                    field.setInt(stdEarth, Float.floatToIntBits(newStd));
+                    int previousAvgInt = field.getInt(averageEarth);
+                    float previousAvg = Float.intBitsToFloat(previousAvgInt);
+                    if (previousAvgInt == Integer.MIN_VALUE) {
+                        field.setInt(averageEarth, Float.floatToIntBits(currentFloatValue));
+                    } else {
+                        float newAvg = previousAvg + (currentFloatValue - previousAvg) / recordCount;
+                        field.setInt(averageEarth, Float.floatToIntBits(newAvg));
+                    }
+                    int previousStdInt = field.getInt(stdEarth);
+                    float previousStd = Float.intBitsToFloat(previousStdInt);
+                    if (previousStdInt == Integer.MIN_VALUE) {
+                        field.setInt(stdEarth, 0);
+                    } else {
+                        float newAvg = Float.intBitsToFloat(field.getInt(averageEarth));
+                        float newStd = (float) Math.sqrt(
+                                ((previousStd * previousStd * (recordCount - 1)) + (currentFloatValue - previousAvg) * (currentFloatValue - newAvg)) / recordCount
+                        );
+                        field.setInt(stdEarth, Float.floatToIntBits(newStd));
+                    }
                 }
             } catch (IllegalAccessException e) {
                 e.printStackTrace();

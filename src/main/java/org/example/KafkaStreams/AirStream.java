@@ -15,14 +15,15 @@ import org.example.KafkaStreams.Serde.AirSerde;
 import org.example.Serializer.AirSerializer;
 
 public class AirStream {
-    private Air averageAir = new Air(null, null, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    private Air stdAir = new Air(null, null, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    private Air averageAir = new Air(null, null, Float.NaN, Float.NaN, Integer.MIN_VALUE, Float.NaN, Integer.MIN_VALUE, Integer.MIN_VALUE, Float.NaN, Float.NaN, Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);
+    private Air stdAir =new Air(null, null, Float.NaN, Float.NaN, Integer.MIN_VALUE, Float.NaN, Integer.MIN_VALUE, Integer.MIN_VALUE, Float.NaN, Float.NaN, Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);
     private int recordCount = 0;
     private final Random random = new Random();
     private KafkaProducer<String, Air> producer = null;
 
     private synchronized Air map(Air value) {
         if (value == null) return null;
+        boolean isNull = false;
 
         // Increment the record recordCount
         recordCount++;
@@ -38,6 +39,7 @@ public class AirStream {
                 if (type == float.class) {
                     float currentValue = field.getFloat(value);
                     if (Float.isNaN(currentValue)) {
+                        isNull = true;
                         // Impute missing value for float
                         float avgValue = field.getFloat(averageAir);
                         float stdValue = field.getFloat(stdAir);
@@ -47,42 +49,64 @@ public class AirStream {
                     }
                         // Update averages and standard deviations incrementally
                         float previousAvg = field.getFloat(averageAir);
-                        float newAvg = previousAvg + (currentValue - previousAvg) / recordCount;
+                        if (Float.isNaN(previousAvg)) {
+                            field.setFloat(averageAir, currentValue);
+                        } else {
+                            float newAvg = previousAvg + (currentValue - previousAvg) / recordCount;
+                            field.setFloat(averageAir, newAvg);
+                        }
                         float previousStd = field.getFloat(stdAir);
-                        float newStd = (float) Math.sqrt(
-                                (previousStd * previousStd * (recordCount - 1)
-                                        + (currentValue - previousAvg) * (currentValue - newAvg)) / recordCount
-                        );
-
-                        field.setFloat(averageAir, newAvg);
-                        field.setFloat(stdAir, newStd);
+                        if (Float.isNaN(previousStd)) {
+                                field.setFloat(stdAir, 0);
+                            } else {
+                                float newAvg = field.getFloat(averageAir);
+                                float newStd = (float) Math.sqrt(
+                                        (previousStd * previousStd * (recordCount - 1)
+                                                + (currentValue - previousAvg) * (currentValue - newAvg)) / recordCount
+                                );
+                                field.setFloat(stdAir, newStd);
+                            }
 
                 } else if (type == int.class) {
                     int currentValue = field.getInt(value);
                     float currentFloatValue = (float) currentValue;
                     if (currentValue == Integer.MIN_VALUE) {
+                        isNull = true;
                         // Impute missing value for int (convert the average from int bits to float)
                         float avgValue = Float.intBitsToFloat(field.getInt(averageAir));
                         float stdValue = Float.intBitsToFloat(field.getInt(stdAir));
                         float imputedValue = avgValue + random.nextFloat()*2*stdValue - stdValue;
-                        field.setInt(value, (int) Math.round(imputedValue));
+                        field.setInt(value, Math.round(imputedValue));
                         currentFloatValue = imputedValue;
                     }
                         // Update averages for int fields
-                        float previousAvg = Float.intBitsToFloat(field.getInt(averageAir));
-                        float newAvg = previousAvg + (currentFloatValue - previousAvg) / recordCount;
-                        float previousStd = Float.intBitsToFloat(field.getInt(stdAir));
-                        float newStd = (float) Math.sqrt(
-                                ((previousStd * previousStd * (recordCount - 1)) + (currentFloatValue - previousAvg) * (currentFloatValue - newAvg))/recordCount
-                        );
-                        // Convert the new average and standard deviation back to int bits
-                        field.setInt(averageAir, Float.floatToIntBits(newAvg));
-                        field.setInt(stdAir, Float.floatToIntBits(newStd));
+                        int previousAvgInt = field.getInt(averageAir);
+                        float previousAvg = Float.intBitsToFloat(previousAvgInt);
+                        if (previousAvgInt == Integer.MIN_VALUE) {
+                            field.setInt(averageAir, Float.floatToIntBits(currentFloatValue));
+                        } else {
+                            float newAvg = previousAvg + (currentFloatValue - previousAvg) / recordCount;
+                            field.setInt(averageAir, Float.floatToIntBits(newAvg));
+                        }
+                        int previousStdInt = field.getInt(stdAir);
+                        float previousStd = Float.intBitsToFloat(previousStdInt);
+                        if (previousStdInt == Integer.MIN_VALUE) {
+                            field.setInt(stdAir, 0);
+                        } else {
+                            float newAvg = Float.intBitsToFloat(field.getInt(averageAir));
+                            float newStd = (float) Math.sqrt(
+                                    ((previousStd * previousStd * (recordCount - 1)) + (currentFloatValue - previousAvg) * (currentFloatValue - newAvg)) / recordCount
+                            );
+                            field.setInt(stdAir, Float.floatToIntBits(newStd));
+                        }
                 }
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
         }
+//        if (isNull) {
+//            System.out.println("\n=============================================================================\nAverage:"+averageAir.toString() + "\nStd"+stdAir.toString()+"\nImputed missing values for air record: " + value.toString()+"\n==============================================================================================");
+//        }
         return value;
     }
     KafkaProducer<String, Air> createProducer() {
