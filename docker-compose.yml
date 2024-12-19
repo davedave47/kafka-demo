@@ -1,0 +1,62 @@
+services:
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    container_name: hdfs-namenode
+    hostname: namenode
+    environment:
+      - CLUSTER_NAME=test-hdfs
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+      - HDFS_CONF_dfs_blocksize=6291456
+    ports:
+      - "9870:9870"
+      - "8020:8020"
+    volumes:
+      - ./namenode:/hadoop/dfs/name
+    networks:
+      - hdfs-net
+      
+  datanode1:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: hdfs-datanode1
+    hostname: datanode1
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+    ports:
+      - "9864:9864"
+      - "1099:1099"
+    volumes:
+      - ./datanode1:/hadoop/dfs/data
+    networks:
+      - hdfs-net
+  
+  datanode2:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: hdfs-datanode2
+    hostname: datanode2
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+    ports:
+      - "9865:9864"
+      - "1098:1099"
+    volumes:
+      - ./datanode2:/hadoop/dfs/data
+    networks:
+      - hdfs-net
+  
+  datanode3:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: hdfs-datanode3
+    hostname: datanode3
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+    ports:
+      - "9866:9864"
+      - "1097:1099"
+    volumes:
+      - ./datanode3:/hadoop/dfs/data
+    networks:
+      - hdfs-net
+
+networks:
+  hdfs-net:
+    driver: bridge
