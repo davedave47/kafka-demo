@@ -6,8 +6,6 @@ import org.example.util.DataParser;
 import org.example.util.ParserResult;
 import org.example.util.Result;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.rmi.Naming;
 import java.text.ParseException;
@@ -18,9 +16,11 @@ import java.io.StringReader;
 import java.util.LinkedList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 
 public class DataToCompute {
     public static void main(String[] args) {
+        Date start = new Date();
         Map<String, Integer> portMap = new HashMap<>();
         portMap.put("hdfs-datanode1", 1099);
         portMap.put("hdfs-datanode2", 1098);
@@ -79,6 +79,7 @@ public class DataToCompute {
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
+        System.out.println("Time taken: " + (new Date().getTime() - start.getTime()) + "ms");
         System.out.println(result.toString());
         result.printIntervals("");
     }

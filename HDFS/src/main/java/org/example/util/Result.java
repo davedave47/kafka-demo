@@ -109,12 +109,12 @@ public class Result implements Serializable {
         }
     }
 
-    public float getAverageTime() {
+    public float getTotalOutOfIdealTime() {
         float sum = 0;
         for (Interval interval: times) {
-            sum += interval.getMinutes();
+            sum += interval.getMinutes() +1;
         }
-        return sum/times.size();
+        return sum;
     }
 
     public float getMaxAirTemperature() {
@@ -189,8 +189,9 @@ public class Result implements Serializable {
     @Override
     public String toString() {
         return "Result{" +
-                "count=" + times.size() +
-                ", averageTime=" + this.getAverageTime() + " minutes" +
+                "number of out of ideal intervals=" + times.size() +
+                ", total out of ideal time=" + this.getTotalOutOfIdealTime() + " minutes" +
+                ", average out of ideal interval=" + this.getTotalOutOfIdealTime()/times.size() + " minutes" +
                 ", maxAirTemperature=" + maxAirTemperature +
                 ", minAirTemperature=" + minAirTemperature +
                 ", maxAirMoisture=" + maxAirMoisture +

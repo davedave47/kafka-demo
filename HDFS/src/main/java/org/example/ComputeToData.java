@@ -11,9 +11,11 @@ import java.rmi.Naming;
 import org.example.util.Result;
 import java.util.concurrent.*;
 import java.util.Random;
+import java.util.Date;
 
 public class ComputeToData {
     public static void main(String[] args) throws Exception {
+        Date start = new Date();
         Result[] results = new Result[4];
         Map<String, Integer> portMap = new HashMap<>();
         portMap.put("hdfs-datanode1", 1099);
@@ -55,6 +57,7 @@ public class ComputeToData {
         }
         executor.shutdown();
         Result finalResult = Result.aggregate(results);
+        System.out.println("Time taken: "+(new Date().getTime()-start.getTime())+"ms");
         System.out.println(finalResult.toString());
         finalResult.printIntervals("");
     }

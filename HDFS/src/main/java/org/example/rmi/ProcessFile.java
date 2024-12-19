@@ -59,6 +59,7 @@ import java.util.Comparator;public class ProcessFile extends UnicastRemoteObject
                 }
                 data.append(line);
             }
+            reader.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

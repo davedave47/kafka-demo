@@ -59,7 +59,6 @@ public class BlockFinder {
                     String[] parts = line.split("DatanodeInfoWithStorage\\[");
                     String[] ipAddresses = new String[parts.length-1];
                     for (int i = 1; i < parts.length; i++) {
-                        String ip = parts[i].split(":")[0];
                         ipAddresses[i-1] = parts[i].split(":")[0];
                     }
                     blockMap.put(blockName[0]+"_"+blockName[1], ipAddresses);
