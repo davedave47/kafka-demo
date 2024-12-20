@@ -27,9 +27,20 @@ public class Result implements Serializable {
         }
         public static List<Interval> aggregate(List<Interval> intervals1, List<Interval> intervals2) {
             List<Interval> result = new LinkedList<>();
-            List<Interval> combinedIntervals = new LinkedList<>(intervals1);
+            List<Interval> combinedIntervals = new LinkedList<>();
+            while (!intervals1.isEmpty() && !intervals2.isEmpty()) {
+                Interval interval1 = intervals1.get(0);
+                Interval interval2 = intervals2.get(0);
+                if (interval1.start.getTime() < interval2.start.getTime()) {
+                    combinedIntervals.add(interval1);
+                    intervals1.remove(0);
+                } else {
+                    combinedIntervals.add(interval2);
+                    intervals2.remove(0);
+                }
+            }
+            combinedIntervals.addAll(intervals1);
             combinedIntervals.addAll(intervals2);
-            combinedIntervals = sort(combinedIntervals);
 
             while (!combinedIntervals.isEmpty()) {
                 Interval current = combinedIntervals.remove(0);
@@ -45,19 +56,10 @@ public class Result implements Serializable {
                 }
                 result.add(current);
             }
-            return Interval.sort(result);
-        }
-        public static List<Interval> sort(List<Interval> intervals) {
-            intervals.sort(new Comparator<Interval>() {
-                @Override
-                public int compare(Interval o1, Interval o2) {
-                    return o1.start.compareTo(o2.start);
-                }
-            });
-            return intervals;
+            return result;
         }
         public void print() {
-            SimpleDateFormat format = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy");
+            SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss zzz");
             format.setTimeZone(TimeZone.getTimeZone("UTC"));
             System.out.println(format.format(start) + " - " + format.format(end));
         }
@@ -151,8 +153,17 @@ public class Result implements Serializable {
                 newInterval = combined;
             }
         }
+
+        ListIterator<Interval> listIterator = times.listIterator();
+        while (listIterator.hasNext()) {
+            Interval interval = listIterator.next();
+            if (interval.start.getTime() > newInterval.start.getTime()) {
+                listIterator.previous();
+                listIterator.add(newInterval);
+                return;
+            }
+        }
         times.add(newInterval);
-        times = Interval.sort(times);
     }
     public static Result aggregate(Result[] results) {
         List<Interval> times = new LinkedList<>();
